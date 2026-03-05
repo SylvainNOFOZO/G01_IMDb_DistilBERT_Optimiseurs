@@ -36,8 +36,11 @@
 
 ```
 G01_IMDb_DistilBERT_Optimiseurs/
-├── main.py                    ← Point d'entrée principal
-├── requirements.txt
+├── main.py                    ← Pipeline complet (entraînement + figures)
+├── dashboard.py               ← Dashboard interactif Dash/Plotly
+├── pyproject.toml             ← Configuration Poetry (dépendances + métadonnées)
+├── poetry.lock                ← Versions exactes figées (généré par Poetry)
+├── requirements.txt           ← Fallback pip (si Poetry non disponible)
 ├── README.md
 ├── src/
 │   ├── __init__.py
@@ -45,13 +48,13 @@ G01_IMDb_DistilBERT_Optimiseurs/
 │   ├── model_setup.py         ← DistilBERT + boucle d'entraînement
 │   ├── optimization.py        ← Random Search sur 3 optimiseurs × 3 LR
 │   ├── loss_landscape.py      ← Profil 1D & calcul de Sharpness
-│   └── visualization.py       ← Toutes les figures matplotlib/seaborn
+│   └── visualization.py       ← Figures matplotlib/seaborn statiques
 ├── notebooks/
 │   ├── exploration.ipynb      ← Exploration du dataset IMDb
 │   └── analysis.ipynb         ← Analyse des résultats post-entraînement
 ├── outputs/
 │   ├── results/               ← CSV et JSON des résultats
-│   ├── figures/               ← Figures PNG
+│   ├── figures/               ← Figures PNG statiques
 │   └── models/                ← State dicts des meilleurs modèles
 └── data/                      ← (optionnel) cache local
 ```
@@ -60,38 +63,85 @@ G01_IMDb_DistilBERT_Optimiseurs/
 
 ## Installation
 
+### Option A — Avec Poetry (recommandé)
+
+Poetry garantit la reproductibilité exacte de l'environnement grâce au `poetry.lock`.
+
 ```bash
-# Cloner le dépôt
-git clone <url_du_depot>
-cd G01_IMDb_DistilBERT_Optimiseurs
+# 1. Installer Poetry (une seule fois)
+pip install poetry
 
-# Créer et activer un environnement virtuel
-python -m venv .venv
-source .venv/bin/activate          # Linux/macOS
-# ou : .venv\Scripts\activate      # Windows
+# 2. Cloner / aller dans le dossier du projet
+cd "C:\Users\SYLVAIN\Desktop\Projet ML OP\G01_IMDb_DistilBERT_Optimiseurs\G01_IMDb_DistilBERT_Optimiseurs"
 
-# Installer les dépendances
+# 3. Créer l'environnement et installer toutes les dépendances
+poetry install
+
+# 4. Activer l'environnement Poetry
+poetry shell
+```
+
+> ⚠️ **Avec Anaconda** : ouvrir d'abord **Anaconda Prompt**, puis exécuter les commandes ci-dessus.  
+> Poetry créera son propre environnement virtuel indépendant de conda.
+
+---
+
+### Option B — Avec pip (fallback)
+
+Si Poetry pose problème sur votre machine :
+
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## Exécution
+## Ordre d'exécution
+
+### Avec Poetry
 
 ```bash
-# Pipeline complet (Random Search + Landscape + Figures)
+# Étape 1 — Pipeline d'entraînement (2-4h sur CPU)
+poetry run python main.py
+
+# Étape 2 — Dashboard interactif
+poetry run python dashboard.py
+
+# (Optionnel) Notebooks
+poetry run jupyter notebook notebooks/exploration.ipynb
+poetry run jupyter notebook notebooks/analysis.ipynb
+```
+
+### Avec pip (environnement activé)
+
+```bash
+# Étape 1 — Pipeline d'entraînement
 python main.py
 
-# Exploration du dataset (Jupyter)
-jupyter notebook notebooks/exploration.ipynb
-
-# Analyse des résultats (après main.py)
-jupyter notebook notebooks/analysis.ipynb
+# Étape 2 — Dashboard interactif
+python dashboard.py
 ```
+
+Puis ouvrir dans le navigateur : **http://127.0.0.1:8050/**
+
+> 💡 Le dashboard fonctionne aussi **avant** `main.py` grâce au mode démonstration.
 
 ---
 
-## Sorties générées
+## Dashboard — Fonctionnalités
+
+| Onglet | Contenu |
+|--------|---------|
+| 📈 **Convergence** | Courbes train/val loss & accuracy par optimiseur (sélection interactive) |
+| 🏆 **Comparaison** | Barres groupées Val Accuracy / Test F1 pour toutes les configurations |
+| 🔍 **Random Search** | Scatter LR vs Accuracy + Heatmap Optimiseur × LR |
+| 🌄 **Loss Landscape** | Sharpness par configuration + tableau de platitude |
+| ⏱ **Temps / Perf** | Compromis temps d'entraînement vs performance |
+| 📋 **Données brutes** | Tableau complet des 9 configurations |
+
+---
+
+## Sorties générées par main.py
 
 | Fichier | Description |
 |---------|-------------|
@@ -143,7 +193,7 @@ Un minima plat (Sharpness ≈ 0) est associé à une meilleure généralisation
 |------------|-------------------|
 | Pas de GPU | torch.float32, torch.set_num_threads(4) |
 | RAM limitée | Sous-échantillonnage (1000 train / 200 val par classe) |
-| Temps contraint | max_seq_length=256, early stopping implicite (best_state) |
+| Temps contraint | max_seq_length=256, best_state sauvegardé |
 | Loss landscape lourd | n_points=10, n_samples=100, n_dirs=5 |
 
 ---
@@ -155,4 +205,5 @@ Un minima plat (Sharpness ≈ 0) est associé à une meilleure généralisation
 - Keskar et al. (2017). **On Large-Batch Training for Deep Learning: Generalization Gap**. ICLR 2017  
 - Li et al. (2018). **Visualizing the Loss Landscape of Neural Nets**. NeurIPS 2018  
 - Loshchilov & Hutter (2019). **Decoupled Weight Decay Regularization (AdamW)**. ICLR 2019  
+- Bergstra & Bengio (2012). **Random Search for Hyper-Parameter Optimization**. JMLR  
 - HuggingFace Transformers : https://huggingface.co/docs/transformers  
