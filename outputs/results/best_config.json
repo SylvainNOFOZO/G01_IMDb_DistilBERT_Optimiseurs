@@ -1,0 +1,7 @@
+{
+  "optimizer": "AdamW",
+  "learning_rate": 1.529395276124993e-05,
+  "best_val_acc": 0.8825,
+  "test_accuracy": 0.876,
+  "test_f1": 0.8756637949014134
+}

@@ -543,7 +543,7 @@ def render_tab(tab):
                                       "background":"#F0F0F0","padding":"10px",
                                       "borderRadius":"4px","fontWeight":"bold"}),
                         html.Hr(),
-                        html.P([html.Strong("Un minimum plat "), "(sharpness ≈ 0) est associé à une "
+                        html.P([html.Strong("Un minimum plat "), "(sharpness ≈ 0) est associé à une ",
                                html.Strong("meilleure généralisation")], className="mb-2"),
                         html.P("ε = 0.05 | N = 5 directions | 100 exemples / évaluation",
                                style={"fontSize":"12px","color":"#666"}),
