@@ -450,6 +450,8 @@ def render_tab(tab):
     if tab == "tab-convergence":
         import base64
         img_path = os.path.join(FIGURES_DIR, "01_convergence_curves.png")
+        if not os.path.exists(img_path):
+            img_path = "01_convergence_curves.png"
         img_b64 = ""
         if os.path.exists(img_path):
             with open(img_path, "rb") as f:
