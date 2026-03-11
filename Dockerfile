@@ -6,6 +6,7 @@ RUN pip install --no-cache-dir dash dash-bootstrap-components plotly pandas nump
 
 COPY dashboard.py .
 COPY *.csv *.json outputs/results/
+COPY *.png outputs/figures/
 
 EXPOSE 7860
 
