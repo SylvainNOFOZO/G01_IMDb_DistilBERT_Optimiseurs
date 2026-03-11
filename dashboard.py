@@ -344,6 +344,7 @@ app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     title="G01 — Dashboard NLP"
 )
+app.config.suppress_callback_exceptions = True
 
 # ── Chargement initial des données ────────────────────────────────────────────
 results_df, best_config, landscape_df = load_data()
@@ -447,32 +448,23 @@ def render_tab(tab):
 
     # ── TAB 1 : Convergence ──────────────────────────────────────────────────
     if tab == "tab-convergence":
+        import base64
+        img_path = os.path.join(FIGURES_DIR, "01_convergence_curves.png")
+        img_b64 = ""
+        if os.path.exists(img_path):
+            with open(img_path, "rb") as f:
+                img_b64 = base64.b64encode(f.read()).decode()
+
         return dbc.Row([
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardHeader(html.Strong("Sélectionner un optimiseur")),
-                    dbc.CardBody(
-                        dcc.RadioItems(
-                            id="opt-selector",
-                            options=[{"label":f" {o}","value":o}
-                                     for o in ["AdamW","SGD","Adafactor"]],
-                            value="AdamW",
-                            inputStyle={"marginRight":"8px"},
-                            labelStyle={"display":"block","padding":"6px 0",
-                                        "fontWeight":"600","fontSize":"14px"},
-                        )
-                    )
-                ], style={"borderTop":f"4px solid {COLORS['dark']}"}),
-                html.Br(),
-                dbc.Card([
-                    dbc.CardHeader(html.Strong("Meilleur run")),
-                    dbc.CardBody(html.Div(id="best-run-info"))
-                ])
-            ], md=3),
-            dbc.Col([
-                dbc.Card(dbc.CardBody(dcc.Graph(id="convergence-graph",
-                                                config={"displayModeBar":False})))
-            ], md=9)
+            dbc.Col(dbc.Card([
+                dbc.CardHeader(html.Strong("Courbes de convergence — Meilleur run par optimiseur")),
+                dbc.CardBody(
+                    html.Img(
+                        src=f"data:image/png;base64,{img_b64}" if img_b64 else "",
+                        style={"width": "100%", "borderRadius": "4px"}
+                    ) if img_b64 else html.P("Image non disponible.", className="text-muted")
+                )
+            ]), md=12)
         ])
 
     # ── TAB 2 : Comparaison ──────────────────────────────────────────────────
@@ -678,33 +670,6 @@ def render_tab(tab):
     return html.Div("Onglet non trouvé")
 
 
-# ── Callback : Convergence ────────────────────────────────────────────────────
-@app.callback(
-    Output("convergence-graph","figure"),
-    Output("best-run-info","children"),
-    Input("opt-selector","value")
-)
-def update_convergence(selected_opt):
-    fig = fig_convergence(results_df, selected_opt)
-
-    subset = results_df[results_df["optimizer"] == selected_opt]
-    if subset.empty:
-        return fig, html.P("Aucune donnée")
-
-    best = subset.loc[subset["best_val_acc"].idxmax()]
-    info = [
-        html.P([html.Strong("LR : "), f"{best['learning_rate']:.2e}"],
-               style={"marginBottom":"4px","fontSize":"13px"}),
-        html.P([html.Strong("Val Acc : "), f"{best['best_val_acc']:.4f}"],
-               style={"marginBottom":"4px","fontSize":"13px"}),
-        html.P([html.Strong("Test Acc : "), f"{best['test_accuracy']:.4f}"],
-               style={"marginBottom":"4px","fontSize":"13px"}),
-        html.P([html.Strong("Test F1 : "), f"{best['test_f1']:.4f}"],
-               style={"marginBottom":"4px","fontSize":"13px"}),
-        html.P([html.Strong("Temps : "), f"{best['total_time_s']/60:.0f} min"],
-               style={"marginBottom":"0","fontSize":"13px"}),
-    ]
-    return fig, info
 
 
 # ─────────────────────────────────────────────────────────────────────────────
