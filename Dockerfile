@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir dash dash-bootstrap-components plotly pandas numpy
 
 COPY dashboard.py .
-COPY outputs/ outputs/
+COPY *.csv *.json outputs/results/
 
 EXPOSE 7860
 
